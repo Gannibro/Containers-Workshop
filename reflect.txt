@@ -1,0 +1,88 @@
+In completing Workshop 4, I've gained a deeper understanding of several key C++ concepts, particularly those related to object relationships and resource management. The workshop's focus on containers and their relationships with other objects has significantly enhanced my grasp of association, aggregation, and composition in C++.
+
+The primary distinction between composition and aggregation lies in ownership and lifecycle management. In composition, the container (whole) owns its components (parts) and is responsible for their creation and destruction. This "owns-a" relationship is evident in the Restaurant class, which dynamically allocates and deallocates Reservation objects:
+
+    Restaurant::Restaurant(const Reservation* reservations[], size_t cnt) {
+        m_reservations = new Reservation*[cnt];
+        for (size_t i = 0; i < cnt; ++i) {
+            m_reservations[i] = new Reservation(*reservations[i]);
+        }
+        m_count = cnt;
+    }
+
+    Restaurant::~Restaurant() {
+        for (size_t i = 0; i < m_count; ++i) {
+            delete m_reservations[i];
+        }
+        delete[] m_reservations;
+    }
+
+Here, Restaurant creates deep copies of Reservations in its constructor and deletes them in its destructor. The Reservations' lifetimes are tied to Restaurant's, embodying a strong "part-of" relationship.
+
+Conversely, in aggregation, the container (whole) uses its components (parts) but doesn't own them. This "has-a" relationship is exemplified by the ConfirmationSender class:
+
+    ConfirmationSender& ConfirmationSender::operator+=(const Reservation& res) {
+        // ...
+        temp[m_count] = &res;
+        // ...
+    }
+
+ConfirmationSender stores pointers to Reservation objects without owning them. It doesn't create or destroy the Reservations, only references them. This weak "has-a" relationship allows Reservations to exist independently of ConfirmationSender.
+
+The difference between move and copy functions in composition and aggregation is also significant. In composition, both operations involve deep copying or moving of resources. The Restaurant's copy constructor demonstrates deep copying:
+
+    Restaurant::Restaurant(const Restaurant& other) {
+        m_reservations = new Reservation*[other.m_count];
+        for (size_t i = 0; i < other.m_count; ++i) {
+            m_reservations[i] = new Reservation(*other.m_reservations[i]);
+        }
+        m_count = other.m_count;
+    }
+
+Each Reservation is copied, ensuring the new Restaurant has its own independent set. Similarly, the move constructor transfers ownership:
+
+    Restaurant::Restaurant(Restaurant&& other) noexcept {
+        m_reservations = other.m_reservations;
+        m_count = other.m_count;
+        other.m_reservations = nullptr;
+        other.m_count = 0;
+    }
+
+The resources are moved, leaving the source in a valid but empty state.
+
+In aggregation, copy and move operations are simpler. ConfirmationSender's copy constructor only copies pointers:
+
+    ConfirmationSender::ConfirmationSender(const ConfirmationSender& other) {
+        m_reservations = new const Reservation*[other.m_count];
+        for (size_t i = 0; i < other.m_count; ++i) {
+            m_reservations[i] = other.m_reservations[i];
+        }
+        m_count = other.m_count;
+    }
+
+No deep copying occurs; both objects now reference the same Reservations. The move constructor simply transfers these references:
+
+    ConfirmationSender::ConfirmationSender(ConfirmationSender&& other) noexcept {
+        m_reservations = other.m_reservations;
+        m_count = other.m_count;
+        other.m_reservations = nullptr;
+        other.m_count = 0;
+    }
+
+Throughout the code, I've used various object relationships:
+
+1. Association: This is the most general relationship, where objects are aware of each other. The global operator<< functions for Reservation, Restaurant, and ConfirmationSender demonstrate association. They know about these classes but don't own or contain them.
+
+2. Aggregation: ConfirmationSender aggregates Reservation objects. It holds pointers to Reservations in its m_reservations array but doesn't control their lifecycle. This "has-a" relationship allows Reservations to be shared among multiple ConfirmationSenders.
+
+3. Composition: Restaurant composes Reservation objects. Each Restaurant creates, owns, and eventually destroys its Reservations. This "part-of" relationship is so strong that if a Restaurant is destroyed, its Reservations cease to exist.
+
+One challenge I faced was properly implementing move semantics. Initially, I overlooked the need for move constructors and move assignment operators in Restaurant and ConfirmationSender. This led to inefficiencies and potential resource leaks when std::move was used in main(). I solved this by carefully implementing these functions, ensuring that resources (like m_reservations) were properly transferred and the source objects were left in a valid, empty state.
+
+Another difficulty was managing the const-correctness, particularly with the array of pointers in ConfirmationSender. The main() function used const Reservation** for its array, requiring me to adjust my code:
+
+    const Reservation** m_reservations{nullptr};
+
+This change ensured that the Reservations pointed to by m_reservations couldn't be modified through these pointers, preserving const-correctness.
+
+In conclusion, this workshop has greatly enhanced my understanding of object relationships and resource management in C++. By implementing composition in Restaurant and aggregation in ConfirmationSender, I've learned to model different types of relationships effectively. Moreover, grappling with move semantics and const-correctness has sharpened my skills in efficient and safe C++ programming. These concepts are crucial for designing robust, efficient, and maintainable C++ systems.
