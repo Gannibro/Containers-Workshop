@@ -1,82 +1,80 @@
 #include "Restaurant.h"
-#include <utility> // for std::move
 
 namespace seneca {
-    Restaurant::Restaurant(const Reservation* reservations[], size_t cnt) : m_cnt(cnt) {
+    Restaurant::Restaurant(const Reservation* reservations[], size_t cnt) {
         m_reservations = new Reservation*[cnt];
         for (size_t i = 0; i < cnt; ++i) {
             m_reservations[i] = new Reservation(*reservations[i]);
         }
+        m_count = cnt;
     }
 
-    Restaurant::~Restaurant() {
-        for (size_t i = 0; i < m_cnt; ++i) {
-            delete m_reservations[i];
-        }
-        delete[] m_reservations;
-    }
-
-    Restaurant::Restaurant(const Restaurant& other) : m_cnt(other.m_cnt) {
-        m_reservations = new Reservation*[m_cnt];
-        for (size_t i = 0; i < m_cnt; ++i) {
-            m_reservations[i] = new Reservation(*other.m_reservations[i]);
-        }
+    Restaurant::Restaurant(const Restaurant& other) {
+        *this = other;
     }
 
     Restaurant& Restaurant::operator=(const Restaurant& other) {
         if (this != &other) {
-            for (size_t i = 0; i < m_cnt; ++i) {
+            for (size_t i = 0; i < m_count; ++i) {
                 delete m_reservations[i];
             }
             delete[] m_reservations;
 
-            m_cnt = other.m_cnt;
-            m_reservations = new Reservation*[m_cnt];
-            for (size_t i = 0; i < m_cnt; ++i) {
+            m_reservations = new Reservation*[other.m_count];
+            for (size_t i = 0; i < other.m_count; ++i) {
                 m_reservations[i] = new Reservation(*other.m_reservations[i]);
             }
+            m_count = other.m_count;
         }
         return *this;
     }
 
-    Restaurant::Restaurant(Restaurant&& other) noexcept : m_reservations(other.m_reservations), m_cnt(other.m_cnt) {
+    // Added move constructor
+    Restaurant::Restaurant(Restaurant&& other) noexcept {
+        m_reservations = other.m_reservations;
+        m_count = other.m_count;
         other.m_reservations = nullptr;
-        other.m_cnt = 0;
+        other.m_count = 0;
     }
 
+    // Added move assignment
     Restaurant& Restaurant::operator=(Restaurant&& other) noexcept {
         if (this != &other) {
-            for (size_t i = 0; i < m_cnt; ++i) {
+            for (size_t i = 0; i < m_count; ++i) {
                 delete m_reservations[i];
             }
             delete[] m_reservations;
 
             m_reservations = other.m_reservations;
-            m_cnt = other.m_cnt;
-
+            m_count = other.m_count;
             other.m_reservations = nullptr;
-            other.m_cnt = 0;
+            other.m_count = 0;
         }
         return *this;
     }
 
-    size_t Restaurant::size() const {
-        return m_cnt;
+    Restaurant::~Restaurant() {
+        for (size_t i = 0; i < m_count; ++i) {
+            delete m_reservations[i];
+        }
+        delete[] m_reservations;
     }
 
-    std::ostream& operator<<(std::ostream& os, const Restaurant& res) {
-        static int call_cnt = 0;
-        ++call_cnt;
+    size_t Restaurant::size() const {
+        return m_count;
+    }
 
+    std::ostream& operator<<(std::ostream& os, const Restaurant& restaurant) {
+        static size_t CALL_CNT = 0;
         os << "--------------------------\n";
-        os << "Fancy Restaurant (" << call_cnt << ")\n";
+        os << "Fancy Restaurant (" << ++CALL_CNT << ")\n";
         os << "--------------------------\n";
 
-        if (res.m_cnt == 0) {
+        if (restaurant.size() == 0) {
             os << "This restaurant is empty!\n";
         } else {
-            for (size_t i = 0; i < res.m_cnt; ++i) {
-                os << *res.m_reservations[i];
+            for (size_t i = 0; i < restaurant.size(); ++i) {
+                os << *restaurant.m_reservations[i];
             }
         }
 

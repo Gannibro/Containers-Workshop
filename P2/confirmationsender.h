@@ -1,22 +1,21 @@
-#ifndef CONFIRMATIONSENDER_H
-#define CONFIRMATIONSENDER_H
+#ifndef SDDS_CONFIRMATIONSENDER_H
+#define SDDS_CONFIRMATIONSENDER_H
 
 #include <iostream>
 #include "Reservation.h"
 
-namespace seneca {
+namespace seneca {  // Changed from sdds to seneca
     class ConfirmationSender {
-    private:
-        const Reservation** m_reservations;
-        size_t m_cnt;
+        const Reservation** m_reservations{nullptr};
+        size_t m_count{0};
 
     public:
         ConfirmationSender();
-        ~ConfirmationSender();
         ConfirmationSender(const ConfirmationSender& other);
         ConfirmationSender& operator=(const ConfirmationSender& other);
-        ConfirmationSender(ConfirmationSender&& other) noexcept;
-        ConfirmationSender& operator=(ConfirmationSender&& other) noexcept;
+        ConfirmationSender(ConfirmationSender&& other) noexcept;  // Added move constructor
+        ConfirmationSender& operator=(ConfirmationSender&& other) noexcept;  // Added move assignment
+        ~ConfirmationSender();
 
         ConfirmationSender& operator+=(const Reservation& res);
         ConfirmationSender& operator-=(const Reservation& res);
@@ -25,4 +24,4 @@ namespace seneca {
     };
 }
 
-#endif // CONFIRMATIONSENDER_H
+#endif // SDDS_CONFIRMATIONSENDER_H

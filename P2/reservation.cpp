@@ -1,78 +1,72 @@
-#include "Reservation.h"
 #include <iomanip>
-#include <iostream>
-#include <algorithm> // for std::find_if
-#include <sstream>   // for std::stringstream
+#include <algorithm>
+#include "Reservation.h"
 
 namespace seneca {
-
-    // Utility function to trim leading and trailing whitespace
-    std::string trim(const std::string& str) {
-        auto front = std::find_if_not(str.begin(), str.end(), ::isspace);
-        auto back = std::find_if_not(str.rbegin(), str.rend(), ::isspace).base();
-        return (front < back ? std::string(front, back) : std::string());
-    }
-
-    Reservation::Reservation() : m_partySize(0), m_day(0), m_hour(0) {}
+    Reservation::Reservation() {}
 
     Reservation::Reservation(const std::string& res) {
-        // Debug: Print the input string
-        std::cout << "Parsing reservation: " << res << std::endl;
+        size_t start = 0, end = 0;
 
-        try {
-            // Split the string using the delimiters
-            size_t start = 0;
-            size_t end = res.find(':');
-            m_reservationID = trim(res.substr(start, end - start));
+        // Extract reservation ID
+        end = res.find(':');
+        m_reservationId = res.substr(start, end);
+        m_reservationId.erase(0, m_reservationId.find_first_not_of(" "));
+        m_reservationId.erase(m_reservationId.find_last_not_of(" ") + 1);
+        start = end + 1;
 
-            start = end + 1;
-            end = res.find(',', start);
-            m_name = trim(res.substr(start, end - start));
+        // Extract name
+        end = res.find(',', start);
+        m_name = res.substr(start, end - start);
+        m_name.erase(0, m_name.find_first_not_of(" "));
+        m_name.erase(m_name.find_last_not_of(" ") + 1);
+        start = end + 1;
 
-            start = end + 1;
-            end = res.find(',', start);
-            m_email = trim(res.substr(start, end - start));
+        // Extract email
+        end = res.find(',', start);
+        m_email = res.substr(start, end - start);
+        m_email.erase(0, m_email.find_first_not_of(" "));
+        m_email.erase(m_email.find_last_not_of(" ") + 1);
+        start = end + 1;
 
-            start = end + 1;
-            end = res.find(',', start);
-            std::string partySizeStr = trim(res.substr(start, end - start));
+        // Extract number of people
+        end = res.find(',', start);
+        m_numOfPeople = std::stoi(res.substr(start, end - start));
+        start = end + 1;
 
-            start = end + 1;
-            end = res.find(',', start);
-            std::string dayStr = trim(res.substr(start, end - start));
+        // Extract day
+        end = res.find(',', start);
+        m_day = std::stoi(res.substr(start, end - start));
+        start = end + 1;
 
-            std::string hourStr = trim(res.substr(end + 1));
-
-            // Debug: Print each extracted substring
-            std::cout << "  Reservation ID: " << m_reservationID << std::endl;
-            std::cout << "  Name: " << m_name << std::endl;
-            std::cout << "  Email: " << m_email << std::endl;
-            std::cout << "  Party Size (str): " << partySizeStr << std::endl;
-            std::cout << "  Day (str): " << dayStr << std::endl;
-            std::cout << "  Hour (str): " << hourStr << std::endl;
-
-            m_partySize = std::stoul(partySizeStr);
-            m_day = std::stoul(dayStr);
-            m_hour = std::stoul(hourStr);
-        } catch (const std::exception& e) {
-            // Debug: Print the error and the input string
-            std::cerr << "Error parsing reservation: " << res << "\nException: " << e.what() << std::endl;
-            throw;
-        }
+        // Extract hour
+        m_hour = std::stoi(res.substr(start));
     }
 
-    void Reservation::update(size_t day, size_t hour) {
+    void Reservation::update(int day, int time) {
         m_day = day;
-        m_hour = hour;
+        m_hour = time;
     }
 
     std::ostream& operator<<(std::ostream& os, const Reservation& res) {
-        os << "Reservation " << std::setw(10) << res.m_reservationID << ": "
-           << std::setw(20) << res.m_name << "  "
-           << std::setw(20) << res.m_email << "    "
-           << "Party Size: " << std::setw(2) << res.m_partySize << "    "
-           << "Day: " << std::setw(2) << res.m_day << "    "
-           << "Hour: " << std::setw(2) << res.m_hour << "\n";
+        os << "Reservation " << std::setw(10) << std::right << res.m_reservationId << ": "
+           << std::setw(20) << std::right << res.m_name << "  "
+           << std::left << std::setw(20) << "<" + res.m_email + ">"
+           << "    ";
+
+        if (res.m_hour >= 6 && res.m_hour <= 9) {
+            os << "Breakfast";
+        } else if (res.m_hour >= 11 && res.m_hour <= 15) {
+            os << "Lunch";
+        } else if (res.m_hour >= 17 && res.m_hour <= 21) {
+            os << "Dinner";
+        } else {
+            os << "Drinks";
+        }
+
+        os << " on day " << res.m_day << " @ " << res.m_hour << ":00"
+           << " for " << res.m_numOfPeople << " people." << std::endl;
+
         return os;
     }
 }
