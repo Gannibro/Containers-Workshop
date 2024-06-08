@@ -4,7 +4,11 @@ namespace seneca {
     Restaurant::Restaurant(const Reservation* reservations[], size_t cnt) {
         m_reservations = new Reservation*[cnt];
         for (size_t i = 0; i < cnt; ++i) {
-            m_reservations[i] = new Reservation(*reservations[i]);
+            if (reservations[i] != nullptr) {
+                m_reservations[i] = new Reservation(*reservations[i]);
+            } else {
+                m_reservations[i] = nullptr;
+            }
         }
         m_count = cnt;
     }
@@ -65,20 +69,22 @@ namespace seneca {
     }
 
     std::ostream& operator<<(std::ostream& os, const Restaurant& restaurant) {
-        static size_t CALL_CNT = 0;
-        os << "--------------------------\n";
-        os << "Fancy Restaurant (" << ++CALL_CNT << ")\n";
-        os << "--------------------------\n";
+    static size_t CALL_CNT = 0;
+    os << "--------------------------\n";
+    os << "Fancy Restaurant (" << ++CALL_CNT << ")\n";
+    os << "--------------------------\n";
 
-        if (restaurant.size() == 0) {
-            os << "This restaurant is empty!\n";
-        } else {
-            for (size_t i = 0; i < restaurant.size(); ++i) {
+    if (restaurant.size() == 0) {
+        os << "This restaurant is empty!\n";
+    } else {
+        for (size_t i = 0; i < restaurant.size(); ++i) {
+            if (restaurant.m_reservations[i] != nullptr) {
                 os << *restaurant.m_reservations[i];
             }
         }
-
-        os << "--------------------------\n";
-        return os;
     }
+
+    os << "--------------------------\n";
+    return os;
+}
 }
