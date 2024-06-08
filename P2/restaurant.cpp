@@ -14,7 +14,11 @@ namespace seneca {
     }
 
     Restaurant::Restaurant(const Restaurant& other) {
-        *this = other;
+        m_reservations = new Reservation*[other.m_count];
+        for (size_t i = 0; i < other.m_count; ++i) {
+            m_reservations[i] = new Reservation(*other.m_reservations[i]);
+        }
+        m_count = other.m_count;
     }
 
     Restaurant& Restaurant::operator=(const Restaurant& other) {
