@@ -65,7 +65,13 @@ namespace seneca {
         }
 
         os << " on day " << res.m_day << " @ " << res.m_hour << ":00"
-           << " for " << res.m_numOfPeople << " people." << std::endl;
+           << " for ";
+           if (res.m_numOfPeople == 1){
+            os << res.m_numOfPeople << " person." << std::endl;
+           }
+           else{
+            os << res.m_numOfPeople << " people." << std::endl;
+           }
 
         return os;
     }
