@@ -37,24 +37,28 @@ namespace seneca {
         return *this;
     }
 
-    // Added move constructor
+    // Move constructor
     Restaurant::Restaurant(Restaurant&& other) noexcept {
-        m_reservations = other.m_reservations;
         m_count = other.m_count;
+        m_reservations = other.m_reservations;
         other.m_reservations = nullptr;
         other.m_count = 0;
     }
 
-    // Added move assignment
+// Move assignment operator
     Restaurant& Restaurant::operator=(Restaurant&& other) noexcept {
         if (this != &other) {
+            // Deallocate existing resources
             for (size_t i = 0; i < m_count; ++i) {
                 delete m_reservations[i];
             }
             delete[] m_reservations;
 
-            m_reservations = other.m_reservations;
+            // Transfer ownership from other
             m_count = other.m_count;
+            m_reservations = other.m_reservations;
+
+            // Reset other to a valid state
             other.m_reservations = nullptr;
             other.m_count = 0;
         }
